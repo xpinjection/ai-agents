@@ -1,0 +1,19 @@
+[project]
+name = "ai-agents"
+version = "0.1.0"
+requires-python = ">=3.13,<3.14"
+dependencies = [
+    "langchain>=1.0.4",
+    "langchain-mcp-adapters>=0.1.12",
+    "langchain-openai>=1.0.2",
+    "langgraph>=1.0.2",
+    "langgraph-api>=0.5.6",
+    "langgraph-cli[inmem]>=0.4.7"
+]
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
