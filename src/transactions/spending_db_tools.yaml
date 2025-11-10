@@ -1,0 +1,55 @@
+sources:
+  transactions-db:
+    kind: postgres
+    host: 127.0.0.1
+    port: 5432
+    database: ai
+    user: root
+    password: 123qwe
+
+tools:
+  account-total-spend:
+    kind: postgres-sql
+    source: transactions-db
+    statement: |
+      SELECT
+        COALESCE(SUM(CASE WHEN amount > 0 THEN amount ELSE 0 END), 0)::numeric(12,2) AS total_spent
+      FROM transactions
+      WHERE account_id = $1::bigint
+        AND mcc = ANY($2::int[])
+        AND posted_at >= $3::date
+        AND posted_at <  $4::date;
+
+    description: |
+      Calculate total positive outgoing spend for one account across a list of MCC
+      (Merchant Category Code) values within a DATE-based window. The window is half-open:
+      [start_date, end_date). Provide dates as "YYYY-MM-DD" strings. Returns a single row
+      with "total_spent" (NUMERIC(12,2)).
+      
+      Example covering the whole October 2025:
+      {
+        "account_id": 1001,
+        "mcc_codes": [5411, 5812, 5541],
+        "start_date": "2025-10-01",
+        "end_date":   "2025-11-01"
+      }
+
+    parameters:
+      - name: account_id
+        type: integer
+        description: Target account ID from transactions.account_id (BIGINT-compatible).
+      - name: mcc_codes
+        type: array
+        description: List of MCC codes to include in the calculation. If empty, result is 0.00.
+        items:
+          name: mcc
+          type: integer
+          description: One MCC code (e.g., 5411 groceries, 5812 restaurants).
+      - name: start_date
+        type: string
+        description: |
+          Start of the DATE window (inclusive). Format: "YYYY-MM-DD".
+      - name: end_date
+        type: string
+        description: |
+          End of the DATE window (exclusive). Format: "YYYY-MM-DD".

@@ -5,6 +5,7 @@ from langchain.agents.middleware import dynamic_prompt, ModelRequest
 from langchain_core.messages import HumanMessage
 from langchain_core.runnables import RunnableConfig
 from langchain_openai import ChatOpenAI
+from langchain_openai.middleware import OpenAIModerationMiddleware
 from langgraph.checkpoint.memory import InMemorySaver
 from pydantic import BaseModel
 
@@ -19,8 +20,10 @@ Explain the requested term in simple words as if you are a school teacher speaki
 Keep your explanation to one paragraph.
 """
 
+
 class CustomContext(BaseModel):
     user_name: Optional[str] = None
+
 
 @dynamic_prompt
 def dynamic_system_prompt(request: ModelRequest) -> str:
@@ -29,9 +32,17 @@ def dynamic_system_prompt(request: ModelRequest) -> str:
         return f"{SYSTEM_PROMPT}. Address the user as {user_name}."
     return SYSTEM_PROMPT
 
+
 simple_chat = create_agent(
     model=model,
-    middleware=[dynamic_system_prompt],
+    middleware=[
+        dynamic_system_prompt,
+        OpenAIModerationMiddleware(
+            check_input=True,
+            check_output=False,
+            check_tool_results=False,
+        ),
+    ],
     context_schema=CustomContext,
 )
 
@@ -47,8 +58,8 @@ if __name__ == "__main__":
     config: RunnableConfig = {"configurable": {"thread_id": "1"}}
     context = CustomContext(user_name="Mikalai")
     agent_response = simple_chat_with_memory.invoke({"messages": [HumanMessage("Machine Learning")]},
-                                        config = config, context=context)
+                                                    config=config, context=context)
     print(agent_response)
     agent_response = simple_chat_with_memory.invoke({"messages": [HumanMessage("How is it related to LLM?")]},
-                                        config=config, context=context)
+                                                    config=config, context=context)
     print(agent_response)

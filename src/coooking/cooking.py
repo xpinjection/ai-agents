@@ -1,20 +1,24 @@
-from langchain.agents.structured_output import ProviderStrategy
-from langchain_openai import ChatOpenAI
-from langchain.agents import create_agent
-from pydantic import BaseModel, Field
-from langchain_core.messages import HumanMessage
 import base64
 from typing import List
+
+from langchain.agents import create_agent
+from langchain.agents.structured_output import ProviderStrategy
+from langchain_core.messages import HumanMessage
+from langchain_openai import ChatOpenAI
+from pydantic import BaseModel, Field
+
 
 class Ingredient(BaseModel):
     name: str = Field(description="Name of ingredient")
     amount: str = Field(description="Amount with units")
     calories: int = Field(description="Approximate calories")
 
+
 class Dish(BaseModel):
     dish_name: str = Field(description="Identified dish name")
     ingredients: List[Ingredient] = Field(description="List of ingredients")
     recipe: str = Field(description="Short textual recipe (3-5 steps)")
+
 
 model = ChatOpenAI(
     model="gpt-4o-mini",
@@ -35,6 +39,7 @@ cooking_chef = create_agent(
     response_format=ProviderStrategy(Dish),
 )
 
+
 def analyze_dish(dish_image_path: str) -> Dish:
     with open(dish_image_path, "rb") as f:
         image_base64 = base64.b64encode(f.read()).decode("utf-8")
@@ -48,6 +53,7 @@ def analyze_dish(dish_image_path: str) -> Dish:
         }
     ])
     return cooking_chef.invoke({"messages": [message]})
+
 
 if __name__ == "__main__":
     result = analyze_dish("dishes/lazania.jpg")

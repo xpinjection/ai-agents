@@ -1,0 +1,10 @@
+services:
+  ai-db:
+    image: pgvector/pgvector:0.8.1-pg17
+    container_name: postgresql
+    environment:
+      POSTGRES_DB: ai
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: 123qwe
+    ports:
+      - "5432:5432"

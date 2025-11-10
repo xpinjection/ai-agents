@@ -42,6 +42,7 @@ cover/
 # LangGraph
 .langgraph/
 *.langgraph
+/.langgraph_api/
 
 # Environments
 .env
@@ -51,6 +52,9 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+
+# Local DB
+**/chroma_db/
 
 # JetBrains PyCharm
 .idea/
