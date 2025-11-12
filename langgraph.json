@@ -5,7 +5,11 @@
     "chef": "./src/coooking/cooking.py:cooking_chef",
     "flights": "./src/flights/flight_assistant.py:flight_assistant",
     "conventions": "./src/conventions/conventions.py:conventions_assistant",
-    "spending": "./src/transactions/spending_assistant.py:create_spending_agent"
+    "spending": "./src/transactions/spending_assistant.py:create_spending_agent",
+    "prompt_chaining": "./src/workflows/prompt_chaining.py:prompt_chain_agent",
+    "parallel": "./src/workflows/parallelization.py:parallel_agent",
+    "routing": "./src/workflows/routing.py:routing_agent",
+    "evaluator_optimizer": "./src/workflows/evaluator_optimizer.py:evaluator_optimizer_agent"
   },
   "env": ".env"
 }
