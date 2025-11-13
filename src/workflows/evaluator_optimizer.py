@@ -1,10 +1,12 @@
+from dataclasses import dataclass
 from pathlib import Path
+from typing import Optional
 
+from langchain_core.runnables import RunnableConfig
 from langchain_openai import ChatOpenAI
 from langgraph.constants import START, END
 from langgraph.graph import StateGraph
 from pydantic import BaseModel, Field
-from typing_extensions import TypedDict
 
 
 class CvReview(BaseModel):
@@ -12,13 +14,18 @@ class CvReview(BaseModel):
     feedback: str = Field(..., description="Feedback on the CV, what is good, what needs improvement, what skills are missing, what red flags, etc.")
 
 
-class State(TypedDict):
+@dataclass
+class InputState:
     life_story: str
     job_description: str
-    cv: str
-    cv_review: CvReview
-    tailored_cv: str
-    review_cycles: int
+
+
+@dataclass
+class State(InputState):
+    cv: str = ""
+    cv_review: Optional[CvReview] = None
+    tailored_cv: str = ""
+    review_cycles: int = 0
 
 
 class ReviewCyclesLimitExceededError(Exception): pass
@@ -35,7 +42,7 @@ review_model = ChatOpenAI(
 ).with_structured_output(CvReview)
 
 
-def generate_cv(state: State):
+def generate_cv(state: InputState):
     """Generates a clean CV based on user-provided information"""
 
     generate_cv_message = """
@@ -50,7 +57,7 @@ def generate_cv(state: State):
     ------
     """
 
-    response = model.invoke(generate_cv_message.format(life_story=state["life_story"]))
+    response = model.invoke(generate_cv_message.format(life_story=state.life_story))
     return {"cv": response.content}
 
 
@@ -77,8 +84,8 @@ def cv_review(state: State):
     ------
     """
 
-    response = review_model.invoke(review_cv_message.format(job_description=state["job_description"],
-                                                            cv=state["cv"]))
+    response = review_model.invoke(review_cv_message.format(job_description=state.job_description,
+                                                            cv=state.cv))
     return {"cv_review": response}
 
 
@@ -108,25 +115,25 @@ def tailor_cv(state: State):
     ------
     """
 
-    review_cycles = state["review_cycles"]
-    if review_cycles >= 5:
+    review_cycles = state.review_cycles
+    if review_cycles >= 3:
         raise ReviewCyclesLimitExceededError(f"The review cycles limit has been exceeded: {review_cycles}")
-    response = model.invoke(tailor_cv_message.format(cv=state["cv"], cv_feedback=state["cv_review"].feedback))
+    response = model.invoke(tailor_cv_message.format(cv=state.cv, cv_feedback=state.cv_review.feedback))
     return {"cv": response.content, "review_cycles": review_cycles + 1}
 
 
 def route_review(state: State):
     """Regenerate until the review score is high enough"""
-    if state["cv_review"].score > 0.8:
+    if state.cv_review.score > 0.8:
         return "Accepted"
     return "Regenerate"
 
 
-workflow = StateGraph(State)
+workflow = StateGraph(State, input_schema=InputState)
 
-workflow.add_node("generate_cv", generate_cv)
-workflow.add_node("tailor_cv", tailor_cv)
-workflow.add_node("cv_review", cv_review)
+workflow.add_node(generate_cv)
+workflow.add_node(tailor_cv)
+workflow.add_node(cv_review)
 
 workflow.add_edge(START, "generate_cv")
 workflow.add_edge("generate_cv", "cv_review")
@@ -146,11 +153,11 @@ if __name__ == '__main__':
     life_story = Path("./docs/user_life_story.txt").read_text(encoding="utf-8")
     job_description = Path("./docs/job_description_backend.txt").read_text(encoding="utf-8")
 
-    result = evaluator_optimizer_agent.invoke({
-        "life_story": life_story,
-        "job_description": job_description,
-        "review_cycles": 0,
-    })
+    config: RunnableConfig = {"configurable": {"thread_id": "1"}, "recursion_limit": 10}
+    result = evaluator_optimizer_agent.invoke(
+        InputState(life_story=life_story, job_description=job_description),
+        config=config,
+    )
 
     print(result["cv_review"].score)
     print(result["cv"])

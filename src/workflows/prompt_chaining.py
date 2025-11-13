@@ -1,16 +1,24 @@
 from pathlib import Path
 
+from langchain_core.runnables import RunnableConfig
 from langchain_openai import ChatOpenAI
+from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.constants import START, END
 from langgraph.graph import StateGraph
 from typing_extensions import TypedDict
 
 
-class State(TypedDict):
+class InputState(TypedDict):
     life_story: str
     instructions: str
-    master_cv: str
+
+
+class OutputState(TypedDict):
     tailored_cv: str
+
+
+class State(InputState, OutputState):
+    master_cv: str
 
 
 model = ChatOpenAI(
@@ -19,7 +27,7 @@ model = ChatOpenAI(
 )
 
 
-def generate_cv(state: State):
+def generate_cv(state: InputState):
     """Generates a clean CV based on user-provided information"""
 
     generate_cv_message = """
@@ -65,10 +73,10 @@ def tailor_cv(state: State):
     return {"tailored_cv": response.content}
 
 
-workflow = StateGraph(State)
+workflow = StateGraph(State, input_schema=InputState, output_schema=OutputState)
 
-workflow.add_node("generate_cv", generate_cv)
-workflow.add_node("tailor_cv", tailor_cv)
+workflow.add_node(generate_cv)
+workflow.add_node(tailor_cv)
 
 workflow.add_edge(START, "generate_cv")
 workflow.add_edge("generate_cv", "tailor_cv")
@@ -81,8 +89,16 @@ if __name__ == '__main__':
     job_description = Path("./docs/job_description_backend.txt").read_text(encoding="utf-8")
     instructions = f"Adapt the CV to the job description below: {job_description}"
 
-    result = prompt_chain_agent.invoke({
+    agent = workflow.compile(checkpointer=InMemorySaver())
+    config: RunnableConfig = {"configurable": {"thread_id": "1"}}
+    result = agent.invoke({
         "life_story": life_story,
         "instructions": instructions,
-    })
+    }, config=config, durability="sync")
     print(result["tailored_cv"])
+
+    states = list(agent.get_state_history(config))
+
+    for state in states:
+        print(state)
+        print()

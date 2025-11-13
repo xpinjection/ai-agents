@@ -4,7 +4,7 @@ version = "0.1.0"
 requires-python = ">=3.13,<3.14"
 dependencies = [
     "langchain>=1.0.5",
-    "langchain-mcp-adapters>=0.1.12",
+    "langchain-mcp-adapters==0.1.13",
     "langchain-openai>=1.0.2",
     "langchain-text-splitters>=1.0.0",
     "pypdf>=6.2.0",
@@ -13,7 +13,7 @@ dependencies = [
     "langchain-community>=1.0.0a1",
     "langchain-chroma>=1.0.0",
     "langgraph==1.0.3",
-    "langgraph-api>=0.5.9",
+    "langgraph-api==0.5.13",
     "langgraph-cli[inmem]>=0.4.7",
 ]
 

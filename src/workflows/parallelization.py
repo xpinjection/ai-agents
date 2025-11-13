@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from langchain_core.runnables import RunnableConfig
 from langchain_openai import ChatOpenAI
 from langgraph.constants import START, END
 from langgraph.graph import StateGraph
@@ -11,16 +12,21 @@ class CvReview(BaseModel):
     score: float = Field(..., description="Score from 0 to 1 how likely you would invite this candidate to an interview")
     feedback: str = Field(..., description="Feedback on the CV, what is good, what needs improvement, what skills are missing, what red flags, etc.")
 
-
-class State(TypedDict):
+class InputState(TypedDict):
     cv: str
     job_description: str
     hr_requirements: str
     phone_interview_notes: str
+
+
+class OutputState(TypedDict):
+    summary_review: CvReview
+
+
+class State(InputState, OutputState):
     hr_review: CvReview
     manager_review: CvReview
     team_member_review: CvReview
-    summary_review: CvReview
 
 
 review_model = ChatOpenAI(
@@ -29,7 +35,7 @@ review_model = ChatOpenAI(
 ).with_structured_output(CvReview)
 
 
-def hr_cv_review(state: State):
+def hr_cv_review(state: InputState):
     """Reviews a CV to check if a candidate fits HR requirements, gives feedback and a score"""
 
     review_cv_message = """
@@ -63,7 +69,7 @@ def hr_cv_review(state: State):
     return {"hr_review": response}
 
 
-def manager_cv_review(state: State):
+def manager_cv_review(state: InputState):
     """Reviews a CV based on a job description, gives feedback and a score"""
 
     review_cv_message = """
@@ -91,7 +97,7 @@ def manager_cv_review(state: State):
     return {"manager_review": response}
 
 
-def team_member_cv_review(state: State):
+def team_member_cv_review(state: InputState):
     """Reviews a CV to see if a candidate fits in the team, gives feedback and a score"""
 
     review_cv_message = """
@@ -113,7 +119,7 @@ def team_member_cv_review(state: State):
     return {"team_member_review": response}
 
 
-def summarize_review(state: State):
+def summarize_review(state: State) -> OutputState:
     feedback = "\n".join([
         f"HR Review: {state["hr_review"].feedback}",
         f"Manager Review: {state["manager_review"].feedback}",
@@ -123,7 +129,7 @@ def summarize_review(state: State):
     return {"summary_review": CvReview(score=avg_score, feedback=feedback)}
 
 
-workflow = StateGraph(State)
+workflow = StateGraph(State, input_schema=InputState, output_schema=OutputState)
 
 workflow.add_node("hr_review", hr_cv_review)
 workflow.add_node("manager_review", manager_cv_review)
@@ -146,11 +152,12 @@ if __name__ == '__main__':
     hr_requirements = Path("./docs/hr_requirements.txt").read_text(encoding="utf-8")
     phone_interview_notes = Path("./docs/phone_interview_notes.txt").read_text(encoding="utf-8")
 
+    config: RunnableConfig = {"configurable": {"thread_id": "1"}}
     result = parallel_agent.invoke({
         "cv": cv,
         "job_description": job_description,
         "hr_requirements": hr_requirements,
         "phone_interview_notes": phone_interview_notes,
-    })
+    }, config=config)
 
     print(result["summary_review"])

@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import List
 
 from langchain.tools import tool
+from langchain_core.runnables import RunnableConfig
 from langchain_openai import ChatOpenAI
 from langgraph.constants import START, END
 from langgraph.graph import StateGraph, MessagesState
@@ -47,9 +48,6 @@ def get_involved_employees_for_interview(job_description_id: str) -> List[str]:
     Finds the email addresses and names of employees who should attend
     the onsite interview for a given job description.
 
-    Args:
-        job_description_id (str): Identifier of the job description.
-
     Returns:
         List[str]: List of employees in the format '<Name>: <email>'.
     """
@@ -71,12 +69,6 @@ class CreateCalendarEntryArgs(BaseModel):
 def create_calendar_entry(email_addresses: List[str], topic: str, start_time: str, end_time: str) -> None:
     """
     Creates calendar entries for given employees based on their email addresses.
-
-    Args:
-        email_addresses (List[str]): List of employees’ email addresses.
-        topic (str): Topic or subject of the meeting.
-        start_time (str): Start date and time in 'YYYY-MM-DD HH:MM' format.
-        end_time (str): End date and time in 'YYYY-MM-DD HH:MM' format.
 
     Returns:
         None: This tool produces a side effect (calendar entry creation).
@@ -100,12 +92,6 @@ def send_email(to: List[str], cc: List[str], subject: str, body: str) -> None:
     """
     Sends an email to the specified recipients.
 
-    Args:
-        to (List[str]): Recipient email addresses.
-        cc (List[str]): CC email addresses.
-        subject (str): Subject line of the email.
-        body (str): Email message content.
-
     Returns:
         None: This tool produces a side effect (email sending).
     """
@@ -126,11 +112,6 @@ class UpdateApplicationStatusArgs(BaseModel):
 def update_application_status(job_description_id: str, candidate_name: str, new_status: str) -> None:
     """
     Updates the application status for a given candidate and job description.
-
-    Args:
-        job_description_id (str): ID of the job description.
-        candidate_name (str): Candidate full name.
-        new_status (str): New application status value.
 
     Returns:
         None: This tool produces a side effect (status update).
@@ -216,11 +197,11 @@ def route_decision(state: State):
 
 workflow = StateGraph(State)
 
-workflow.add_node("reject_candidate", reject_candidate)
+workflow.add_node(reject_candidate)
 workflow.add_node("reject_candidate_tools", ToolNode(tools=tools))
-workflow.add_node("organize_interview", organize_interview)
+workflow.add_node(organize_interview)
 workflow.add_node("organize_interview_tools", ToolNode(tools=tools))
-workflow.add_node("decision_router", decision_router)
+workflow.add_node(decision_router)
 
 workflow.add_edge(START, "decision_router")
 workflow.add_conditional_edges(
@@ -259,16 +240,18 @@ if __name__ == '__main__':
     +32 495 67 89 23
     """
 
+    config: RunnableConfig = {"configurable": {"thread_id": "1"}}
     routing_agent.invoke({
         "cv_review": cv_review,
         "job_description": job_description,
         "candidate_contact": candidate_contact
-    })
+    }, config=config)
 
     cv_review["score"] = 0.9
 
+    config: RunnableConfig = {"configurable": {"thread_id": "2"}}
     routing_agent.invoke({
         "cv_review": cv_review,
         "job_description": job_description,
         "candidate_contact": candidate_contact
-    })
+    }, config=config)
