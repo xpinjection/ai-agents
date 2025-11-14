@@ -27,7 +27,7 @@ query_rewrite_model = ChatOpenAI(
 )
 
 SYSTEM_MESSAGE = """
-You are an assistant that answers questions about internal API conventions.
+You are an assistant that answers questions based on internal API conventions.
 Use ONLY the information provided in the API conventions to answer. 
 If the answer is not contained in the API conventions, reply exactly: 'I don't know based on the existing conventions.'
 Avoid statements like "Based on the context..." or "The provided information...".
@@ -53,7 +53,7 @@ Here is the initial question:
 async def dynamic_system_prompt(request: ModelRequest) -> str:
     user_query = request.state["messages"][-1].text
     response = await query_rewrite_model.ainvoke(REWRITE_PROMPT.format(question=user_query))
-    improved_query = response.content
+    improved_query = response.text
     print(f"Improved query: {improved_query}")
     retrieved_docs = await retriever.ainvoke(improved_query)
     print(f"Found documents: {retrieved_docs}")

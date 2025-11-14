@@ -58,7 +58,7 @@ def generate_cv(state: InputState):
     """
 
     response = model.invoke(generate_cv_message.format(life_story=state.life_story))
-    return {"cv": response.content}
+    return {"cv": response.text}
 
 
 def cv_review(state: State):
@@ -119,7 +119,7 @@ def tailor_cv(state: State):
     if review_cycles >= 3:
         raise ReviewCyclesLimitExceededError(f"The review cycles limit has been exceeded: {review_cycles}")
     response = model.invoke(tailor_cv_message.format(cv=state.cv, cv_feedback=state.cv_review.feedback))
-    return {"cv": response.content, "review_cycles": review_cycles + 1}
+    return {"cv": response.text, "review_cycles": review_cycles + 1}
 
 
 def route_review(state: State):

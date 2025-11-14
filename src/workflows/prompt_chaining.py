@@ -43,7 +43,7 @@ def generate_cv(state: InputState):
     """
 
     response = model.invoke(generate_cv_message.format(life_story=state["life_story"]))
-    return {"master_cv": response.content}
+    return {"master_cv": response.text}
 
 
 def tailor_cv(state: State):
@@ -70,7 +70,7 @@ def tailor_cv(state: State):
 
     response = model.invoke(tailor_cv_message.format(master_cv=state["master_cv"],
                                                      instructions=state["instructions"]))
-    return {"tailored_cv": response.content}
+    return {"tailored_cv": response.text}
 
 
 workflow = StateGraph(State, input_schema=InputState, output_schema=OutputState)
