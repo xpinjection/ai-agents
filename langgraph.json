@@ -10,7 +10,9 @@
     "prompt_chaining": "./src/workflows/prompt_chaining.py:prompt_chain_agent",
     "parallel": "./src/workflows/parallelization.py:parallel_agent",
     "routing": "./src/workflows/routing.py:routing_agent",
-    "evaluator_optimizer": "./src/workflows/evaluator_optimizer.py:evaluator_optimizer_agent"
+    "evaluator_optimizer": "./src/workflows/evaluator_optimizer.py:evaluator_optimizer_agent",
+    "supervisor": "./src/workflows/supervisor.py:supervisor_assistant"
   },
+  "python_version": "3.13",
   "env": ".env"
 }
