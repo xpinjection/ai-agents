@@ -1,0 +1,43 @@
+volumes:
+    langgraph-data:
+        driver: local
+services:
+    langgraph-redis:
+        image: redis:6
+        healthcheck:
+            test: redis-cli ping
+            interval: 5s
+            timeout: 1s
+            retries: 5
+    langgraph-postgres:
+        image: postgres:16
+        ports:
+            - "5432:5432"
+        environment:
+            POSTGRES_DB: langgraph
+            POSTGRES_USER: root
+            POSTGRES_PASSWORD: 123qwe
+        volumes:
+            - langgraph-data:/var/lib/postgresql/data
+        healthcheck:
+            test: pg_isready -U root -d langgraph
+            start_period: 30s
+            timeout: 1s
+            retries: 5
+            interval: 5s
+    langgraph-api:
+        image: library/ai-agents:0.1.0
+        ports:
+            - "8123:8000"
+        depends_on:
+            langgraph-redis:
+                condition: service_healthy
+            langgraph-postgres:
+                condition: service_healthy
+        env_file:
+            - .env
+        environment:
+            REDIS_URI: redis://langgraph-redis:6379
+            DATABASE_URI: postgres://root:123qwe@langgraph-postgres:5432/langgraph?sslmode=disable
+            MCP_DB_TOOLBOX_URL: http://host.docker.internal:5000/mcp
+            POSTGRES_DB_URL: postgresql://root:123qwe@langgraph-postgres:5432/langgraph?sslmode=disable

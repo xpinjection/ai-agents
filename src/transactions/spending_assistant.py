@@ -1,3 +1,5 @@
+import os
+
 from langchain.agents import create_agent
 from langchain.agents.middleware import HumanInTheLoopMiddleware
 from langchain_community.tools import BraveSearch
@@ -25,13 +27,14 @@ Your main functions include identifying relevant Merchant Category Codes (MCCs) 
 
 brave_search_tool = BraveSearch.from_search_kwargs({"max_results": 5})
 
+MCP_URL = os.getenv("MCP_DB_TOOLBOX_URL")
 
 async def create_spending_agent():
     client = MultiServerMCPClient(
         {
             "transactions-db": {
                 "transport": "streamable_http",
-                "url": "http://localhost:5000/mcp",
+                "url": MCP_URL,
             }
         }
     )

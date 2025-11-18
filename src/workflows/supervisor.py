@@ -1,3 +1,5 @@
+import os
+
 from langchain.agents import create_agent
 from langchain_community.agent_toolkits import SQLDatabaseToolkit
 from langchain_community.utilities import SQLDatabase
@@ -16,8 +18,9 @@ class TestSqlQueryInput(GenerateSqlQueryInput):
     """Input for test SQL query tool."""
     sql_query: str = Field(description="SQL query to be tested.")
 
+DB_URL = os.getenv("POSTGRES_DB_URL")
 
-db = SQLDatabase.from_uri("postgresql://root:123qwe@localhost:5432/ai")
+db = SQLDatabase.from_uri(DB_URL)
 
 sql_model = ChatOpenAI(
     model="gpt-4o-mini",
