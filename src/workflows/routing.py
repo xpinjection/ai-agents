@@ -1,13 +1,13 @@
 from datetime import date
 from pathlib import Path
-from typing import List
+from typing import List, Literal
 
 from langchain.tools import tool
 from langchain_core.runnables import RunnableConfig
 from langchain_openai import ChatOpenAI
 from langgraph.constants import START, END
 from langgraph.graph import StateGraph, MessagesState
-from langgraph.prebuilt import ToolNode
+from langgraph.prebuilt import ToolNode, tools_condition
 from pydantic import BaseModel, Field
 from typing_extensions import TypedDict
 
@@ -188,7 +188,7 @@ def decision_router(state: State):
     return {"decision": "interview"}
 
 
-def route_decision(state: State):
+def route_decision(state: State) -> Literal["reject_candidate", "organize_interview"]:
     if state["decision"] == "reject":
         return "reject_candidate"
     elif state["decision"] == "interview":
@@ -210,20 +210,14 @@ workflow.add_conditional_edges(
 )
 workflow.add_conditional_edges(
     "reject_candidate",
-    lambda state: (
-        "reject_candidate_tools"
-        if state["messages"][-1].tool_calls
-        else END
-    ),
+    tools_condition,
+    {"tools": "reject_candidate_tools", "__end__": END},
 )
 workflow.add_edge("reject_candidate_tools", "reject_candidate")
 workflow.add_conditional_edges(
     "organize_interview",
-    lambda state: (
-        "organize_interview_tools"
-        if state["messages"][-1].tool_calls
-        else END
-    ),
+    tools_condition,
+    {"tools": "organize_interview_tools", "__end__": END},
 )
 workflow.add_edge("organize_interview_tools", "organize_interview")
 
