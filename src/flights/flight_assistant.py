@@ -9,7 +9,7 @@ from langchain_core.messages import ToolMessage
 from langchain_core.tools import tool, ToolException
 from langchain_openai import ChatOpenAI
 from langgraph.prebuilt.tool_node import ToolCallRequest
-from langgraph.types import Command
+from langgraph.types import Command, Checkpointer
 from pydantic import BaseModel, Field
 
 from flights.flight_service import Flight, FlightInfo, Passenger, Booking, FlightNotFoundError, \
@@ -255,9 +255,11 @@ model = ChatOpenAI(
     model="gpt-5-mini",
 )
 
-flight_assistant = create_agent(
-    model=model,
-    system_prompt=SYSTEM_PROMPT,
-    tools=[list_flights, get_flight, book_tickets, find_booking, cancel_booking],
-    middleware=[ToolErrorHandlerMiddleware()],
-)
+def create_flight_assistant(checkpointer: Checkpointer = None):
+    return create_agent(
+        model=model,
+        system_prompt=SYSTEM_PROMPT,
+        tools=[list_flights, get_flight, book_tickets, find_booking, cancel_booking],
+        middleware=[ToolErrorHandlerMiddleware()],
+        checkpointer=checkpointer,
+    )

@@ -16,6 +16,8 @@ dependencies = [
     "langgraph-api==0.5.14",
     "langgraph-cli[inmem]>=0.4.7",
     "psycopg2-binary>=2.9.11",
+    "pytest>=9.0.1",
+    "agentevals>=0.0.9",
 ]
 
 [build-system]
