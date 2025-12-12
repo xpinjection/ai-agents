@@ -251,11 +251,19 @@ user-friendly summary.
 - Explain all errors in a human friendly way, don't use reference to the system or tools in your responses.
 """
 
-model = ChatOpenAI(
-    model="gpt-5-mini",
-)
-
 def create_flight_assistant(checkpointer: Checkpointer = None):
+    """Create a flight booking assistant agent.
+
+    Args:
+        checkpointer: Optional checkpointer for conversation state persistence
+
+    Returns:
+        Compiled StateGraph agent for flight booking operations
+    """
+    model = ChatOpenAI(
+        model="gpt-5-mini",
+    )
+
     return create_agent(
         model=model,
         system_prompt=SYSTEM_PROMPT,
