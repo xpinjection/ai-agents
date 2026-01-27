@@ -42,7 +42,7 @@ query_rewrite_model = ChatOpenAI(
 )
 
 grader_model = ChatOpenAI(
-    model="gpt-4o-mini",
+    model="gpt-4o",
     temperature=0.1,
 ).with_structured_output(GradeDocuments)
 

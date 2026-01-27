@@ -126,7 +126,7 @@ available_flights = [
     Flight(
         code="LO123", departure="WARSAW",
         destination="KRAKOW",
-        departure_time=datetime(2026, 1, 5, 9, 30),
+        departure_time=datetime(2026, 2, 5, 9, 30),
         ticket_price=Decimal("199.99"),
         capacity=5,
     ),
@@ -134,7 +134,7 @@ available_flights = [
         code="LO456",
         departure="WARSAW",
         destination="GDANSK",
-        departure_time=datetime(2026, 1, 5, 13, 15),
+        departure_time=datetime(2026, 2, 5, 13, 15),
         ticket_price=Decimal("159.50"),
         capacity=3,
     ),
@@ -142,7 +142,7 @@ available_flights = [
         code="LO789",
         departure="KRAKOW",
         destination="WARSAW",
-        departure_time=datetime(2026, 1, 6, 18, 45),
+        departure_time=datetime(2026, 2, 6, 18, 45),
         ticket_price=Decimal("189.00"),
         capacity=4,
     ),
@@ -271,3 +271,5 @@ def create_flight_assistant(checkpointer: Checkpointer = None):
         middleware=[ToolErrorHandlerMiddleware()],
         checkpointer=checkpointer,
     )
+
+flight_assistant = create_flight_assistant()

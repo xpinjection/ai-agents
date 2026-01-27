@@ -30,7 +30,7 @@ def test_flight_search(flight_assistant, evaluator):
 
         Flight code: LO123
         Route: Warsaw → Krakow
-        Departure: 2026-01-05 at 09:30
+        Departure: 2026-02-05 at 09:30
         Price: 199.99
         Seats available: 5
 

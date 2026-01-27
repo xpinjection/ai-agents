@@ -3,23 +3,23 @@ name = "ai-agents"
 version = "0.1.0"
 requires-python = ">=3.13,<3.14"
 dependencies = [
-    "langchain==1.1.0",
-    "langchain-mcp-adapters==0.1.14",
-    "langchain-openai==1.1.0",
-    "langchain-text-splitters==1.0.0",
-    "pypdf==6.4.0",
-    "unstructured==0.18.21",
+    "langchain==1.2.7",
+    "langchain-mcp-adapters==0.2.1",
+    "langchain-openai==1.1.7",
+    "langchain-text-splitters==1.1.0",
+    "pypdf==6.6.1",
+    "unstructured==0.18.27",
     "markdown==3.10",
     "langchain-community==0.4.1",
-    "langchain-chroma==1.0.0",
-    "langgraph==1.0.4",
-    "langgraph-api==0.5.37",
-    "langgraph-cli[inmem]==0.4.9",
+    "langchain-chroma==1.1.0",
+    "langgraph==1.0.7",
+    "langgraph-api==0.7.9",
+    "langgraph-cli[inmem]==0.4.12",
     "psycopg2-binary==2.9.11",
-    "pytest==9.0.1",
+    "pytest==9.0.2",
     "agentevals==0.0.9",
-    "a2a-sdk==0.3.20",
-    "fastmcp==2.14.0",
+    "a2a-sdk==0.3.22",
+    "fastmcp==2.14.4",
 ]
 
 [build-system]
