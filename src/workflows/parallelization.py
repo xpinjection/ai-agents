@@ -41,11 +41,10 @@ def hr_cv_review(state: InputState):
     review_cv_message = """
     You are working for HR and review CVs to fill a position with predefined requirements.
     You give each CV a score and feedback (both the good and the bad things).
-    You can ignore things like missing address and placeholders.            
-    IMPORTANT: Return your response as valid JSON only, without any markdown formatting or code blocks.
-    
-    Requirements:            
-             
+    You can ignore things like missing address and placeholders.
+
+    Requirements:
+
     ------
     {requirements}
     ------
@@ -76,10 +75,9 @@ def manager_cv_review(state: InputState):
     You are the hiring manager for specified job description.
     Your review applicant CVs and need to decide who of the many applicants you invite for an on-site interview.
     You give each CV a score and feedback (both the good and the bad things).
-    You can ignore things like missing address and placeholders.       
-    IMPORTANT: Return your response as valid JSON only, without any markdown formatting or code blocks.
+    You can ignore things like missing address and placeholders.
 
-    Job description:            :            
+    Job description:
 
     ------
     {job_description}
@@ -105,8 +103,7 @@ def team_member_cv_review(state: InputState):
     Your team values collaboration, responsibility and pragmatism.
     Your review applicant CVs and need to decide how well this person will fit in your team.
     You give each CV a score and feedback (both the good and the bad things).
-    You can ignore things like missing address and placeholders.       
-    IMPORTANT: Return your response as valid JSON only, without any markdown formatting or code blocks.
+    You can ignore things like missing address and placeholders.
 
     Candidate CV:
 

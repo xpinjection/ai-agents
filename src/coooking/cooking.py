@@ -27,10 +27,8 @@ model = ChatOpenAI(
 
 SYSTEM_PROMPT = """
 Act as a professional chef that can recognize dishes from images.
-Look at the photo and recognize the dish name. 
+Look at the photo and recognize the dish name.
 List the products (ingredients) needed to cook it and a short recipe with steps.
-Return ONLY a structured JSON object that matches specified schema.
-Do not include any explanations, only provide a RFC8259 compliant JSON response following this format without deviation.
 """
 
 cooking_chef = create_agent(

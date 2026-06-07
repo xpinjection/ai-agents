@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import List, Literal
 
 from langchain.tools import tool
+from langchain_core.messages import SystemMessage
 from langchain_core.runnables import RunnableConfig
 from langchain_openai import ChatOpenAI
 from langgraph.constants import START, END
@@ -151,7 +152,7 @@ def organize_interview(state: State):
 
     system_message = interview_message.format(job_description=state["job_description"],
                                               candidate_contact=state["candidate_contact"])
-    response = model.invoke([system_message] + state["messages"])
+    response = model.invoke([SystemMessage(system_message)] + state["messages"])
     return {"messages": [response]}
 
 
@@ -177,7 +178,7 @@ def reject_candidate(state: State):
 
     system_message = interview_message.format(job_description=state["job_description"],
                                               candidate_contact=state["candidate_contact"])
-    response = model.invoke([system_message] + state["messages"])
+    response = model.invoke([SystemMessage(system_message)] + state["messages"])
     return {"messages": [response]}
 
 

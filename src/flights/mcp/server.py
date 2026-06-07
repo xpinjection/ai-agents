@@ -1,5 +1,6 @@
 """FastMCP server exposing Flight Booking Assistant as MCP tools."""
 
+import logging
 import uuid
 from typing import List, Optional
 
@@ -21,6 +22,8 @@ from flights.flight_assistant import (
     InputValidationError,
     OverCapacityError,
 )
+
+logger = logging.getLogger(__name__)
 
 # Load environment variables from .env file
 load_dotenv()

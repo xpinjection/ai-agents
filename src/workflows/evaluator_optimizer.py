@@ -68,10 +68,9 @@ def cv_review(state: State):
     You are the hiring manager for specified job description.
     Your review applicant CVs and need to decide who of the many applicants you invite for an on-site interview.
     You give each CV a score and feedback (both the good and the bad things).
-    You can ignore things like missing address and placeholders.       
-    IMPORTANT: Return your response as valid JSON only, without any markdown formatting or code blocks.
+    You can ignore things like missing address and placeholders.
 
-    Job description:            :            
+    Job description:
 
     ------
     {job_description}

@@ -31,10 +31,10 @@ toolkit = SQLDatabaseToolkit(db=db, llm=sql_model)
 
 db_tools = toolkit.get_tools()
 
-get_db_schema_tool = next(tool for tool in db_tools if tool.name == "sql_db_schema")
-get_db_tables_tool = next(tool for tool in db_tools if tool.name == "sql_db_list_tables")
-sql_query_checker_tool = next(tool for tool in db_tools if tool.name == "sql_db_query_checker")
-sql_executor_tool = next(tool for tool in db_tools if tool.name == "sql_db_query")
+get_db_schema_tool = next(t for t in db_tools if t.name == "sql_db_schema")
+get_db_tables_tool = next(t for t in db_tools if t.name == "sql_db_list_tables")
+sql_query_checker_tool = next(t for t in db_tools if t.name == "sql_db_query_checker")
+sql_executor_tool = next(t for t in db_tools if t.name == "sql_db_query")
 
 DBA_SYSTEM_PROMPT = """
 Act as an experienced DBA with deep knowledge of {dialect} databases.
@@ -53,6 +53,7 @@ dba_agent = create_agent(
     model=sql_model,
     system_prompt=DBA_SYSTEM_PROMPT,
     tools=[get_db_schema_tool, get_db_tables_tool, sql_query_checker_tool],
+    name="dba_agent",
 )
 
 
@@ -64,7 +65,7 @@ def generate_sql_query(user_task: str):
     return result["messages"][-1].text
 
 
-qa_model = model = ChatOpenAI(
+qa_model = ChatOpenAI(
     model="gpt-5-mini",
     reasoning_effort="medium",
 )
@@ -85,6 +86,7 @@ qa_agent = create_agent(
     model=qa_model,
     system_prompt=QA_ENGINEER_SYSTEM_PROMPT,
     tools=[get_db_tables_tool, sql_executor_tool],
+    name="qa_agent",
 )
 
 
@@ -122,8 +124,8 @@ supervisor_assistant = create_agent(
 )
 
 if __name__ == '__main__':
-    for tool in db_tools:
-        print(f"{tool.name}: {tool.description}\n")
+    for t in db_tools:
+        print(f"{t.name}: {t.description}\n")
 
     agent_response = supervisor_assistant.invoke(
         {"messages": [HumanMessage("Top merchant spending for last 3 months")]})

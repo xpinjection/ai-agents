@@ -36,6 +36,11 @@ model = ChatOpenAI(
     temperature=0.1,
 ).bind_tools([retriever_tool])
 
+answer_model = ChatOpenAI(
+    model="gpt-4o-mini",
+    temperature=0.1,
+)
+
 query_rewrite_model = ChatOpenAI(
     model="gpt-4o-mini",
     temperature=0.1,
@@ -107,7 +112,7 @@ def generate_query_or_respond(state: MessagesState):
 
 def grade_documents(state: MessagesState) -> Literal["generate_answer", "rewrite_question"]:
     """Determine whether the retrieved documents are relevant to the question."""
-    question = state["messages"][0].text
+    question = state["messages"][0].content
     context = state["messages"][-1].content
 
     prompt = GRADE_PROMPT.format(question=question, context=context)
@@ -121,17 +126,17 @@ def grade_documents(state: MessagesState) -> Literal["generate_answer", "rewrite
 def rewrite_question(state: MessagesState):
     """Rewrite the original user question."""
     messages = state["messages"]
-    question = messages[0].text
+    question = messages[0].content
     response = query_rewrite_model.invoke([HumanMessage(REWRITE_PROMPT.format(question=question))])
-    return {"messages": [HumanMessage(content=response.text)]}
+    return {"messages": [HumanMessage(content=response.content)]}
 
 
 def generate_answer(state: MessagesState):
     """Generate an answer."""
-    question = state["messages"][0].text
+    question = state["messages"][0].content
     context = state["messages"][-1].content
     prompt = ANSWER_MESSAGE.format(question=question, conventions=context)
-    response = model.invoke([HumanMessage(prompt)])
+    response = answer_model.invoke([HumanMessage(prompt)])
     return {"messages": [response]}
 
 

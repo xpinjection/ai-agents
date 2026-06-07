@@ -1,7 +1,11 @@
+import logging
+
 from langchain.agents import create_agent
 from langchain.agents.middleware import dynamic_prompt, ModelRequest
 from langchain_chroma import Chroma
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
+
+logger = logging.getLogger(__name__)
 
 embeddings_model = OpenAIEmbeddings(model="text-embedding-3-large")
 
@@ -54,9 +58,9 @@ async def dynamic_system_prompt(request: ModelRequest) -> str:
     user_query = request.state["messages"][-1].text
     response = await query_rewrite_model.ainvoke(REWRITE_PROMPT.format(question=user_query))
     improved_query = response.text
-    print(f"Improved query: {improved_query}")
+    logger.info("Improved query: %s", improved_query)
     retrieved_docs = await retriever.ainvoke(improved_query)
-    print(f"Found documents: {retrieved_docs}")
+    logger.debug("Found documents: %s", retrieved_docs)
     conventions = "\n\n".join(doc.page_content for doc in retrieved_docs)
     return SYSTEM_MESSAGE.format(conventions=conventions)
 

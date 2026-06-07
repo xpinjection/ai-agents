@@ -1,5 +1,6 @@
 """LangGraph agent wrapper with A2A streaming interface."""
 
+import logging
 from enum import Enum
 from typing import AsyncGenerator
 
@@ -10,6 +11,8 @@ from langgraph.checkpoint.memory import MemorySaver
 from pydantic import BaseModel
 
 from flights.flight_assistant import create_flight_assistant
+
+logger = logging.getLogger(__name__)
 
 
 class ResponseState(str, Enum):
@@ -51,7 +54,7 @@ class FlightAgent:
         # Create agent with MemorySaver for multi-turn conversations
         checkpointer = MemorySaver()
         self.agent = create_flight_assistant(checkpointer=checkpointer)
-        print("FlightAgent initialized with MemorySaver checkpointer")
+        logger.info("FlightAgent initialized with MemorySaver checkpointer")
 
     async def stream(
             self,
@@ -74,47 +77,59 @@ class FlightAgent:
             # Configure thread for conversation state
             config = {"configurable": {"thread_id": thread_id}}
 
-            print(f"Streaming agent response for thread {thread_id}")
+            logger.info("Streaming agent response for thread %s", thread_id)
 
-            # Track if we've seen any agent responses
-            has_response = False
-            final_content = ""
+            # Track AI messages so we yield each new one as an interim update
+            # and only mark the final emission as is_task_complete=True.
+            last_emitted_content: str | None = None
+            last_emitted_id: str | None = None
 
-            # Stream agent execution
             async for chunk in self.agent.astream(
                     {"messages": lc_messages},
                     config=config,
                     stream_mode="values"
             ):
-                # Process the chunk to extract the latest message
-                if "messages" in chunk:
-                    messages_list = chunk["messages"]
-                    if messages_list:
-                        last_message = messages_list[-1]
+                if "messages" not in chunk:
+                    continue
+                messages_list = chunk["messages"]
+                if not messages_list:
+                    continue
+                last_message = messages_list[-1]
+                if not isinstance(last_message, AIMessage):
+                    continue
+                if not last_message.content:
+                    # Skip tool-call-only chunks with no user-visible content.
+                    continue
 
-                        # Check if it's an AI message (agent response)
-                        if isinstance(last_message, AIMessage):
-                            has_response = True
-                            final_content = last_message.content
-                            print("Agent response received")
+                message_id = getattr(last_message, "id", None)
+                if message_id == last_emitted_id and last_message.content == last_emitted_content:
+                    continue
 
-            # Generate final response
-            if has_response and final_content:
+                last_emitted_id = message_id
+                last_emitted_content = last_message.content
+                logger.info("Agent interim response received")
                 yield ResponseFormat(
                     state=ResponseState.COMPLETED,
-                    content=final_content,
-                    is_task_complete=True
+                    content=last_message.content,
+                    is_task_complete=False,
+                )
+
+            if last_emitted_content is not None:
+                # Final marker so the A2A client knows the task is done.
+                yield ResponseFormat(
+                    state=ResponseState.COMPLETED,
+                    content=last_emitted_content,
+                    is_task_complete=True,
                 )
             else:
-                # No response generated
                 yield ResponseFormat(
                     state=ResponseState.ERROR,
                     content="No response generated from agent",
-                    is_task_complete=False
+                    is_task_complete=False,
                 )
 
         except Exception as e:
-            print(f"Error streaming agent response: {e}")
+            logger.exception("Error streaming agent response")
             yield ResponseFormat(
                 state=ResponseState.ERROR,
                 content=f"Error processing request: {str(e)}",
@@ -143,8 +158,8 @@ class FlightAgent:
                 lc_messages.append(AIMessage(content=text))
             else:
                 # Default to human message for unknown roles
-                print(f"Warning: Unknown role {msg.role}, treating as user message")
+                logger.warning("Unknown role %s, treating as user message", msg.role)
                 lc_messages.append(HumanMessage(content=text))
 
-        print(f"Converted {len(a2a_messages)} A2A messages to LangChain format")
+        logger.info("Converted %d A2A messages to LangChain format", len(a2a_messages))
         return lc_messages
