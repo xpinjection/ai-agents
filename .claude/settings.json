@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(uv run:*)",
+      "Bash(uv sync:*)",
+      "Bash(uv pip list:*)",
+      "Bash(docker compose:*)",
+      "Bash(docker container ls:*)",
+      "Bash(docker ps:*)",
+      "Bash(netstat:*)",
+      "WebFetch(domain:docs.langchain.com)",
+      "mcp__context7__*",
+      "mcp__Claude_Preview__*",
+      "mcp__Claude_in_Chrome__*"
+    ]
+  }
+}

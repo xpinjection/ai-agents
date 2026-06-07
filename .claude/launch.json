@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "LangGraph Dev Server",
+      "runtimeExecutable": "uv",
+      "runtimeArgs": ["run", "langgraph", "dev"],
+      "port": 2024
+    }
+  ]
+}
