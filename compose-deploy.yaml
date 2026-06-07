@@ -1,16 +1,20 @@
 volumes:
     langgraph-data:
         driver: local
+    langgraph-redis-data:
+        driver: local
 services:
     langgraph-redis:
-        image: redis:6
+        image: redis:7
         healthcheck:
             test: redis-cli ping
             interval: 5s
             timeout: 1s
             retries: 5
+        volumes:
+            - langgraph-redis-data:/data
     langgraph-postgres:
-        image: postgres:16
+        image: postgres:17
         ports:
             - "5432:5432"
         environment:
@@ -26,7 +30,7 @@ services:
             retries: 5
             interval: 5s
     langgraph-api:
-        image: library/ai-agents:0.1.0
+        image: ${IMAGE_NAME:-ai-agents:latest}
         ports:
             - "8123:8000"
         depends_on:
