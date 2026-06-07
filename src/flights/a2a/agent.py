@@ -3,8 +3,8 @@
 from enum import Enum
 from typing import AsyncGenerator
 
+from a2a.helpers import get_message_text
 from a2a.types import Message, Role
-from a2a.utils.message import get_message_text
 from langchain_core.messages import HumanMessage, AIMessage
 from langgraph.checkpoint.memory import MemorySaver
 from pydantic import BaseModel
@@ -137,9 +137,9 @@ class FlightAgent:
             text = get_message_text(msg)
 
             # Convert based on role
-            if msg.role == Role.user:
+            if msg.role == Role.ROLE_USER:
                 lc_messages.append(HumanMessage(content=text))
-            elif msg.role == Role.agent:
+            elif msg.role == Role.ROLE_AGENT:
                 lc_messages.append(AIMessage(content=text))
             else:
                 # Default to human message for unknown roles

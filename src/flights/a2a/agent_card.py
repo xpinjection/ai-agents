@@ -1,6 +1,12 @@
 """Agent card definition for Flight Booking A2A agent."""
 
-from a2a.types import AgentCard, AgentSkill, AgentProvider, AgentCapabilities
+from a2a.types import (
+    AgentCapabilities,
+    AgentCard,
+    AgentInterface,
+    AgentProvider,
+    AgentSkill,
+)
 
 
 def create_agent_card(host: str = "localhost", port: int = 9999) -> AgentCard:
@@ -13,7 +19,7 @@ def create_agent_card(host: str = "localhost", port: int = 9999) -> AgentCard:
     Returns:
         AgentCard with flight booking agent metadata
     """
-    base_url = f"http://{host}:{port}"
+    base_url = f"http://{host}:{port}/"
 
     return AgentCard(
         name="Flight Booking Agent",
@@ -23,16 +29,17 @@ def create_agent_card(host: str = "localhost", port: int = 9999) -> AgentCard:
             "interaction with all necessary information provided."
         ),
         version="1.0.0",
-        protocol_version="0.3.0",
-        url=base_url,
-
-        # Agent provider information
+        supported_interfaces=[
+            AgentInterface(
+                url=base_url,
+                protocol_binding="JSONRPC",
+                protocol_version="1.0.0",
+            ),
+        ],
         provider=AgentProvider(
             organization="AI Agents Demo",
-            url="https://github.com/yourusername/ai-agents"
+            url="https://github.com/yourusername/ai-agents",
         ),
-
-        # Skills definition
         skills=[
             AgentSkill(
                 id="flight_search",
@@ -46,8 +53,8 @@ def create_agent_card(host: str = "localhost", port: int = 9999) -> AgentCard:
                 examples=[
                     "Find flights from Warsaw to Krakow",
                     "Show me flights to Gdansk",
-                    "What flights are available from Krakow to Warsaw?"
-                ]
+                    "What flights are available from Krakow to Warsaw?",
+                ],
             ),
             AgentSkill(
                 id="flight_booking",
@@ -61,8 +68,8 @@ def create_agent_card(host: str = "localhost", port: int = 9999) -> AgentCard:
                 examples=[
                     "Book flight LO123 for 2 passengers",
                     "I want to book tickets on flight LO456",
-                    "Reserve seats for John Smith born 1990-01-15"
-                ]
+                    "Reserve seats for John Smith born 1990-01-15",
+                ],
             ),
             AgentSkill(
                 id="booking_management",
@@ -76,8 +83,8 @@ def create_agent_card(host: str = "localhost", port: int = 9999) -> AgentCard:
                 examples=[
                     "Find my booking with ID abc-123",
                     "Show booking details for xyz-456",
-                    "Cancel my booking def-789"
-                ]
+                    "Cancel my booking def-789",
+                ],
             ),
             AgentSkill(
                 id="flight_details",
@@ -90,19 +97,14 @@ def create_agent_card(host: str = "localhost", port: int = 9999) -> AgentCard:
                 examples=[
                     "Tell me about flight LO123",
                     "What's the capacity of flight LO456?",
-                    "Show details for flight code LO789"
-                ]
-            )
+                    "Show details for flight code LO789",
+                ],
+            ),
         ],
-
-        # Capabilities
         capabilities=AgentCapabilities(
             streaming=True,
             push_notifications=False,
-            state_transition_history=True
         ),
-
-        # Supported content types
         default_input_modes=["text/plain"],
-        default_output_modes=["text/plain"]
+        default_output_modes=["text/plain"],
     )
