@@ -9,6 +9,7 @@
       "Bash(docker ps:*)",
       "Bash(netstat:*)",
       "WebFetch(domain:docs.langchain.com)",
+      "WebFetch(domain:pypi.org)",
       "mcp__context7__*",
       "mcp__Claude_Preview__*",
       "mcp__Claude_in_Chrome__*"
