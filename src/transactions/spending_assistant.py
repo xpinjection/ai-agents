@@ -8,7 +8,7 @@ from langchain_core.messages import HumanMessage
 from langchain_mcp_adapters.client import MultiServerMCPClient
 from langchain_openai import ChatOpenAI
 from langgraph.checkpoint.memory import InMemorySaver
-from langgraph.types import Checkpointer, Command
+from langgraph.types import Command
 
 model = ChatOpenAI(
     model="gpt-5-mini",
@@ -65,11 +65,15 @@ async def _get_mcp_tools():
     return _mcp_tools_cache
 
 
-async def create_spending_agent(checkpointer: Checkpointer = None):
+async def create_spending_agent(config: dict | None = None):
     """Create a spending assistant agent.
 
+    Graph factory function for LangGraph server. When called by `langgraph dev`,
+    a Config dict is passed as the first argument. The server handles checkpointing
+    automatically after the graph is returned.
+
     Args:
-        checkpointer: Optional checkpointer for conversation state persistence
+        config: Optional LangGraph server config dict (passed automatically by langgraph dev)
 
     Returns:
         Compiled StateGraph agent for spending analysis
@@ -88,7 +92,6 @@ async def create_spending_agent(checkpointer: Checkpointer = None):
             ),
         ],
         tools=[brave_search_tool] + db_tools,
-        checkpointer=checkpointer,
     )
 
     return agent
@@ -97,7 +100,8 @@ async def create_spending_agent(checkpointer: Checkpointer = None):
 if __name__ == "__main__":
     async def main():
         checkpointer = InMemorySaver()
-        spending_assistant = await create_spending_agent(checkpointer=checkpointer)
+        spending_assistant = await create_spending_agent()
+        spending_assistant = spending_assistant.copy(update={"checkpointer": checkpointer})
 
         config = {"configurable": {"thread_id": "1"}}
 
