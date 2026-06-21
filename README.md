@@ -156,6 +156,9 @@ The following agents are available in LangGraph Studio:
 - **routing** - Conditional routing (CV review example)
 - **evaluator_optimizer** - Evaluation and optimization workflows
 
+### Coding Agent
+- **coding** - Claude Code-like coding agent (built on the **deepagents** library) that operates on a project directory with filesystem + shell access, plans with an `Explore` subagent, and gates writes/edits/shell commands behind human approval
+
 ## Agent-Specific Setup
 
 ### RAG Agents (conventions, conventions_agentic)
@@ -276,6 +279,54 @@ The supervisor agent demonstrates a multi-agent pattern with:
 - **DBA Agent**: Generates SQL queries
 - **QA Agent**: Tests SQL queries
 - **Supervisor**: Coordinates between agents
+
+### Coding Agent
+
+A Claude Code-like software-engineering assistant built on the [**deepagents**](https://github.com/langchain-ai/deepagents) library (graph `coding`, source in `src/coding_agent/`). It operates on a real project directory with filesystem and shell access, plans before acting, and gates every mutating action behind human approval.
+
+#### What it does
+
+- **Operates on a project directory** set by `CODING_AGENT_PROJECT_DIR` (defaults to this repository). Filesystem and shell access are scoped to that directory via a `LocalShellBackend` running in virtual mode (the project is presented as a POSIX filesystem rooted at the project dir — required for correct behavior on Windows).
+- **Loads project context** automatically:
+  - **Memory** — the project's `CLAUDE.md` is loaded into the system prompt.
+  - **Skills** — directories under `.claude/skills/` are loaded on demand when relevant.
+  - **MCP tools** — servers declared in a Claude Code-style `.mcp.json` at the project root (see `src/coding_agent/mcp_config.py`).
+- **Plans with an `Explore` subagent** — a fast, **read-only** code investigator (`gpt-5.4-nano`) for preliminary investigation. It can only `ls`/`read_file`/`glob`/`grep` (no shell, all writes denied), and returns concise conclusions with `file:line` references that ground the main agent's plan.
+- **Human-in-the-loop approval** — the `write_file`, `edit_file`, and `execute` tools are gated behind approval interrupts (`interrupt_on` + a checkpointer that `langgraph dev` manages). The agent proposes each change and waits for you to approve it.
+
+#### Configuration
+
+All settings are environment variables (all optional; defaults shown). They are also listed in `.env.example`:
+
+```bash
+# Absolute path to the project the agent operates on. Defaults to this repo root.
+# An empty value falls back to the repo root.
+CODING_AGENT_PROJECT_DIR=
+
+# Main model id and reasoning effort (low | medium | high)
+CODING_AGENT_MODEL=gpt-5.5
+CODING_AGENT_REASONING_EFFORT=medium
+
+# Model for the read-only Explore investigation subagent
+CODING_AGENT_EXPLORE_MODEL=gpt-5.4-nano
+```
+
+> **Note:** The main and Explore models are GPT-5.x and use OpenAI's **Responses API** (reasoning effort + tool calling requires `/v1/responses`, not Chat Completions). Only `OPENAI_API_KEY` is required.
+
+#### Running
+
+```bash
+# Start the LangGraph dev server, then pick the "coding" graph in LangGraph Studio
+uv run langgraph dev
+```
+
+**MCP servers and the blocking-call guard:** each `.mcp.json` server is loaded independently, so a broken or unauthenticated server is skipped without dropping the others. Stdio (local-command) MCP servers trip `langgraph dev`'s blocking-call guard (`os.access`) — to load them, start the server with the guard relaxed:
+
+```bash
+uv run langgraph dev --allow-blocking
+```
+
+Remote `http`/`sse` MCP servers do not need this flag, and production deployments don't run the guard.
 
 ## Running Individual Agents
 

@@ -7,6 +7,7 @@ connection schema expected by ``langchain_mcp_adapters.MultiServerMCPClient``.
 
 import json
 import logging
+import os
 from pathlib import Path
 
 from langchain_mcp_adapters.client import MultiServerMCPClient
@@ -21,8 +22,11 @@ def _to_connection(name: str, spec: dict) -> dict | None:
         conn: dict = {"transport": "stdio", "command": spec["command"]}
         if spec.get("args"):
             conn["args"] = spec["args"]
-        if spec.get("env"):
-            conn["env"] = spec["env"]
+        # The mcp SDK's get_default_environment() forwards only a minimal allowlist and drops
+        # ProgramFiles/ProgramData on Windows — which the docker CLI needs to find its plugins
+        # (e.g. `docker mcp gateway`). Inherit the full parent env so stdio servers launched via
+        # docker/npx/uvx resolve correctly; any explicit .mcp.json env still takes precedence.
+        conn["env"] = {**os.environ, **(spec.get("env") or {})}
         return conn
 
     # remote server: reachable over http / sse
