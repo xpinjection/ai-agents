@@ -11,7 +11,8 @@
     "parallel": "./src/workflows/parallelization.py:parallel_agent",
     "routing": "./src/workflows/routing.py:routing_agent",
     "evaluator_optimizer": "./src/workflows/evaluator_optimizer.py:evaluator_optimizer_agent",
-    "supervisor": "./src/workflows/supervisor.py:supervisor_assistant"
+    "supervisor": "./src/workflows/supervisor.py:supervisor_assistant",
+    "coding": "./src/coding_agent/agent.py:create_coding_agent"
   },
   "python_version": "3.13",
   "env": ".env"
