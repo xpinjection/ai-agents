@@ -76,6 +76,12 @@ docker compose -f compose-deploy.yaml up
   - `flights/mcp/`: FastMCP server exposing flight tools (run: `uv run python -m src.flights.mcp`)
 - `transactions/`: Spending assistant (requires MCP Database Toolbox, Brave Search API, PostgreSQL with transaction data)
 - `native-llm/`: Native LLM API integration
+- `coding_agent/`: Claude Code-like coding agent built on the **deepagents** library (graph `coding` in `langgraph.json`; run via `uv run langgraph dev`)
+  - Operates on a project directory set by `CODING_AGENT_PROJECT_DIR` (defaults to this repo) via a `LocalShellBackend` (filesystem + shell)
+  - Loads project memory (`CLAUDE.md`), skills (`.claude/skills/`), and MCP tools (`.mcp.json`, parsed in `coding_agent/mcp_config.py`)
+  - Main model `gpt-5.5` with configurable `reasoning_effort`; read-only `Explore` subagent on `gpt-5.4-nano` for preliminary investigation during planning
+  - `write_file` / `edit_file` / `execute` are gated behind human-in-the-loop approval (`interrupt_on` + checkpointer)
+  - Each `.mcp.json` server loads independently, so a broken/unauthenticated server is skipped without dropping the others. Stdio MCP servers trip `langgraph dev`'s blocking-call guard (`os.access`); use `uv run langgraph dev --allow-blocking` to load them (production deployments don't run the guard)
 
 **RAG Implementations**
 - `conventions/`: Basic RAG using Chroma vector store
